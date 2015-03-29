@@ -5,10 +5,16 @@ import com.github.mwedgwood.model.Person;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
 public class HibernateUtilTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HibernateUtilTest.class);
 
     @Test
     public void testAuditPerson() throws Exception {
@@ -42,5 +48,19 @@ public class HibernateUtilTest {
         });
 
         assertEquals("Matt", previousPerson.getName());
+
+        List<Number> revisions = Transactable.execute(session -> {
+            AuditReader auditReader = AuditReaderFactory.get(session);
+            return auditReader.getRevisions(Person.class, person.getId());
+        });
+
+        assertEquals(2, revisions.size());
+        LOGGER.debug("Revisions: {}", revisions);
+
+        Transactable.execute(session -> {
+            AuditReader auditReader = AuditReaderFactory.get(session);
+            revisions.stream().forEach(revision -> LOGGER.debug("Revision {} date: {}", revision, auditReader.getRevisionDate(revision)));
+            return null;
+        });
     }
 }

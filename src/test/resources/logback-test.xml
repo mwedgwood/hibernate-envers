@@ -10,10 +10,8 @@
         </encoder>
     </appender>
 
+    <logger name="com.github.mwedgwood" level="DEBUG"/>
     <logger name="org.hibernate" level="INFO"/>
-    <!--<logger name="org.hibernate.engine.jdbc.batch.internal" level="DEBUG"/>-->
-    <!--<logger name="org.hibernate.engine.transaction.internal.jdbc.JdbcTransaction" level="DEBUG"/>-->
-    <!--<logger name="org.hibernate.engine.engine.jdbc.internal.LogicalConnectionImpl" level="DEBUG"/>-->
     <logger name="org.hibernate.cfg.SettingsFactory" level="INFO"/>
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
 
