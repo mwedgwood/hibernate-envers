@@ -1,6 +1,6 @@
 package com.github.mwedgwood;
 
-import com.github.mwedgwood.model.Model;
+import com.github.mwedgwood.model.Person;
 import org.h2.jdbcx.JdbcDataSource;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -27,22 +27,30 @@ public class HibernateUtil {
     }
 
     private HibernateUtil() {
-        initializeSessonFactory();
+        initializeSessionFactory();
     }
 
     public static SessionFactory getSessionFactory() {
         return SingletonHolder.INSTANCE.sessionFactory;
     }
 
-    private void initializeSessonFactory() {
+    private void initializeSessionFactory() {
         Configuration configuration = new Configuration();
         configuration.setProperty(Environment.CONNECTION_PROVIDER, H2ConnectionProvider.class.getName());
+        configuration.setProperty(CURRENT_SESSION_CONTEXT_CLASS, "thread");
         configuration.setProperty(DIALECT, H2Dialect.class.getName());
         configuration.setProperty(HBM2DDL_AUTO, "create-drop");
-        configuration.setProperty(USE_SECOND_LEVEL_CACHE, Boolean.FALSE.toString());
-        configuration.setProperty(USE_QUERY_CACHE, Boolean.FALSE.toString());
         configuration.setProperty(SHOW_SQL, Boolean.TRUE.toString());
         configuration.setProperty(FORMAT_SQL, Boolean.TRUE.toString());
+
+        configuration.setProperty("hibernate.ejb.event.post-insert", "org.hibernate.ejb.event.EJB3PostInsertEventListener,org.hibernate.envers.event.AuditEventListener");
+        configuration.setProperty("hibernate.ejb.event.post-update", "org.hibernate.ejb.event.EJB3PostUpdateEventListener,org.hibernate.envers.event.AuditEventListener");
+        configuration.setProperty("hibernate.ejb.event.post-delete", "org.hibernate.ejb.event.EJB3PostDeleteEventListener,org.hibernate.envers.event.AuditEventListener");
+
+        configuration.setProperty("hibernate.ejb.event.pre-collection-update", "org.hibernate.envers.event.AuditEventListener");
+        configuration.setProperty("hibernate.ejb.event.pre-collection-remove", "org.hibernate.envers.event.AuditEventListener");
+        configuration.setProperty("hibernate.ejb.event.post-collection-recreate", "org.hibernate.envers.event.AuditEventListener");
+
         addAnnotatedClasses(configuration);
 
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
@@ -53,18 +61,20 @@ public class HibernateUtil {
     }
 
     private Configuration addAnnotatedClasses(Configuration configuration) {
-        for (Class<?> aClass : new Reflections(Model.class.getPackage().getName()).getTypesAnnotatedWith(Entity.class)) {
-            // don't load classes that have generic type parameters as hibernate can not deal with them unless used as superclasses
-            if (aClass.getTypeParameters().length == 0) configuration.addAnnotatedClass(aClass);
-        }
+        // don't load classes that have generic type parameters as hibernate can not deal with them unless used as superclasses
+        new Reflections(Person.class.getPackage().getName()).getTypesAnnotatedWith(Entity.class)
+                .stream()
+                .filter(aClass -> aClass.getTypeParameters().length == 0)
+                .forEach(configuration::addAnnotatedClass);
+
         return configuration;
     }
 
-    private class H2ConnectionProvider implements ConnectionProvider {
+    public static class H2ConnectionProvider implements ConnectionProvider {
 
         DataSource getDataSource() {
             JdbcDataSource jdbcDataSource = new JdbcDataSource();
-            jdbcDataSource.setURL("jdbc:h2:mem");
+            jdbcDataSource.setURL("jdbc:h2:~/hibernate_examples");
             return jdbcDataSource;
         }
 
