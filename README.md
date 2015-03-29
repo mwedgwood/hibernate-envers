@@ -1,4 +1,4 @@
-hibernate-examples
+hibernate-envers
 ==================
 
-place to test various hibernate maddness
+envers example
