@@ -11,10 +11,10 @@ import static org.junit.Assert.assertEquals;
 public class HibernateUtilTest {
 
     @Test
-    public void testAuditUser() throws Exception {
+    public void testAuditPerson() throws Exception {
         Person person = Transactable.execute(session -> {
             Address address = new Address()
-                    .setStreetName("2663 California Street");
+                    .setStreetName("1111 Nowhere Lane");
 
             session.save(address);
 
