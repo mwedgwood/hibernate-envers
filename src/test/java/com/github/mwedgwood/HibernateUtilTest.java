@@ -2,6 +2,7 @@ package com.github.mwedgwood;
 
 import com.github.mwedgwood.model.Address;
 import com.github.mwedgwood.model.Person;
+import org.hibernate.Hibernate;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.junit.Test;
@@ -18,10 +19,8 @@ public class HibernateUtilTest {
 
     @Test
     public void testAuditPerson() throws Exception {
-        Person person = Transactable.execute(session -> {
-            Address address = new Address()
-                    .setStreetName("1111 Nowhere Lane");
-
+        Person initialPerson = Transactable.execute(session -> {
+            Address address = new Address().setStreetName("1111 Nowhere Lane");
             session.save(address);
 
             Person newPerson = new Person()
@@ -33,34 +32,50 @@ public class HibernateUtilTest {
             return newPerson;
         });
 
-        assertEquals("Matt", person.getName());
+        assertEquals("Matt", initialPerson.getName());
+        assertEquals("1111 Nowhere Lane", initialPerson.getAddress().getStreetName());
 
         Person updatedPerson = Transactable.execute(session -> {
-            session.update(person.setName("John"));
-            return person;
+            session.update(initialPerson.setName("John"));
+            session.update(initialPerson.getAddress().setStreetName("1700 Montgomery Street"));
+            return initialPerson;
         });
 
         assertEquals("John", updatedPerson.getName());
+        assertEquals("1700 Montgomery Street", updatedPerson.getAddress().getStreetName());
 
-        Person previousPerson = Transactable.execute(session -> {
+        Person versionOnePerson = Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
-            return auditReader.find(Person.class, person.getId(), 1);
+            Person v1person = auditReader.find(Person.class, initialPerson.getId(), 1);
+
+            Hibernate.initialize(v1person.getAddress());
+            return v1person;
         });
 
-        assertEquals("Matt", previousPerson.getName());
+        Person currentPerson = findById(initialPerson.getId());
+
+        assertEquals("Matt", versionOnePerson.getName());
+        assertEquals("1111 Nowhere Lane", versionOnePerson.getAddress().getStreetName());
+
+        assertEquals("John", currentPerson.getName());
+        assertEquals("1700 Montgomery Street", updatedPerson.getAddress().getStreetName());
 
         List<Number> revisions = Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
-            return auditReader.getRevisions(Person.class, person.getId());
+            return auditReader.getRevisions(Person.class, initialPerson.getId());
         });
 
-        assertEquals(2, revisions.size());
         LOGGER.debug("Revisions: {}", revisions);
+        assertEquals(2, revisions.size());
 
         Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
             revisions.stream().forEach(revision -> LOGGER.debug("Revision {} date: {}", revision, auditReader.getRevisionDate(revision)));
             return null;
         });
+    }
+
+    private Person findById(Integer id) {
+        return Transactable.execute(session -> (Person) session.get(Person.class, id));
     }
 }
