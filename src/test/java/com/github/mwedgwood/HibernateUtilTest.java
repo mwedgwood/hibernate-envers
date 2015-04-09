@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class HibernateUtilTest {
 
@@ -58,15 +59,30 @@ public class HibernateUtilTest {
         assertEquals("1111 Nowhere Lane", versionOnePerson.getAddress().getStreetName());
 
         assertEquals("John", currentPerson.getName());
-        assertEquals("1700 Montgomery Street", updatedPerson.getAddress().getStreetName());
+        assertEquals("1700 Montgomery Street", currentPerson.getAddress().getStreetName());
+
+        Transactable.execute(session -> {
+            session.delete(currentPerson);
+            return null;
+        });
 
         List<Number> revisions = Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
             return auditReader.getRevisions(Person.class, initialPerson.getId());
         });
 
+        Person deletedPerson = findById(initialPerson.getId());
+        assertNull(deletedPerson);
+
+        Person versionTwoPerson = Transactable.execute(session -> {
+            AuditReader auditReader = AuditReaderFactory.get(session);
+            return auditReader.find(Person.class, initialPerson.getId(), 2);
+        });
+
+        assertEquals("John", versionTwoPerson.getName());
+
         LOGGER.debug("Revisions: {}", revisions);
-        assertEquals(2, revisions.size());
+        assertEquals(3, revisions.size());
 
         Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
