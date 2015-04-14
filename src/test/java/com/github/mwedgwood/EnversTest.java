@@ -14,9 +14,9 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class HibernateUtilTest {
+public class EnversTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HibernateUtilTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnversTest.class);
 
     @Test
     public void testAuditPerson() throws Exception {
