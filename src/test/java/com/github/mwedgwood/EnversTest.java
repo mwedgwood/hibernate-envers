@@ -2,6 +2,7 @@ package com.github.mwedgwood;
 
 import com.github.mwedgwood.model.Address;
 import com.github.mwedgwood.model.Person;
+import com.github.mwedgwood.model.Tree;
 import org.hibernate.Hibernate;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
@@ -87,6 +88,26 @@ public class EnversTest {
         Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
             revisions.stream().forEach(revision -> LOGGER.debug("Revision {} date: {}", revision, auditReader.getRevisionDate(revision)));
+            return null;
+        });
+    }
+
+    @Test
+    public void testAuditTree() throws Exception {
+        Tree initialRoot = Transactable.execute(session -> {
+            Tree root = new Tree().setName("Root");
+            root.addChildTree(new Tree().setName("Child 1"));
+            root.addChildTree(new Tree().setName("Child 2"));
+            session.save(root);
+            return root;
+        });
+
+        System.out.println("\n" + initialRoot.prettyPrint());
+
+        Transactable.execute(session -> {
+            AuditReader auditReader = AuditReaderFactory.get(session);
+            Tree versionOneRoot = auditReader.find(Tree.class, initialRoot.getId(), 1);
+            System.out.println("\n" + versionOneRoot.prettyPrint());
             return null;
         });
     }
