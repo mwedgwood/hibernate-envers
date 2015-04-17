@@ -37,14 +37,14 @@ public class HibernateUtil {
     }
 
     private void initializeSessionFactory() {
-        Configuration configuration = new Configuration();
-        configuration.setProperty(Environment.CONNECTION_PROVIDER, H2ConnectionProvider.class.getName());
-        configuration.setProperty(CURRENT_SESSION_CONTEXT_CLASS, "thread");
-        configuration.setProperty(DIALECT, H2Dialect.class.getName());
-        configuration.setProperty(HBM2DDL_AUTO, "create-drop");
-        configuration.setProperty(SHOW_SQL, Boolean.TRUE.toString());
-        configuration.setProperty(FORMAT_SQL, Boolean.TRUE.toString());
-        configuration.setProperty(AUTO_REGISTER, TRUE.toString());
+        Configuration configuration = new Configuration()
+                .setProperty(Environment.CONNECTION_PROVIDER, H2ConnectionProvider.class.getName())
+                .setProperty(CURRENT_SESSION_CONTEXT_CLASS, "thread")
+                .setProperty(DIALECT, H2Dialect.class.getName())
+                .setProperty(HBM2DDL_AUTO, "create-drop")
+                .setProperty(SHOW_SQL, Boolean.TRUE.toString())
+                .setProperty(FORMAT_SQL, Boolean.TRUE.toString())
+                .setProperty(AUTO_REGISTER, TRUE.toString());
 
         addAnnotatedClasses(configuration);
 
