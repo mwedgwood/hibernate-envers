@@ -20,7 +20,6 @@ public class Tree {
     private Integer childrenOrder = 0;
 
     private Tree parent;
-
     private List<Tree> children = new ArrayList<>();
 
     @Id
@@ -34,11 +33,11 @@ public class Tree {
         return this;
     }
 
+    @NotNull
     public String getName() {
         return name;
     }
 
-    @NotNull
     public Tree setName(String name) {
         this.name = name;
         return this;
