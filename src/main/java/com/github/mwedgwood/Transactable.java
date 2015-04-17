@@ -25,7 +25,7 @@ public class Transactable {
     }
 
     @FunctionalInterface
-    public static interface UnitOfWork<T> {
+    public interface UnitOfWork<T> {
         T doWork(final Session session);
     }
 

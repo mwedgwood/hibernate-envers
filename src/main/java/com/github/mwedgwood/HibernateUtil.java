@@ -16,7 +16,9 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import static java.lang.Boolean.TRUE;
 import static org.hibernate.cfg.AvailableSettings.*;
+import static org.hibernate.envers.event.spi.EnversIntegrator.AUTO_REGISTER;
 
 public class HibernateUtil {
 
@@ -42,14 +44,7 @@ public class HibernateUtil {
         configuration.setProperty(HBM2DDL_AUTO, "create-drop");
         configuration.setProperty(SHOW_SQL, Boolean.TRUE.toString());
         configuration.setProperty(FORMAT_SQL, Boolean.TRUE.toString());
-
-        configuration.setProperty("hibernate.ejb.event.post-insert", "org.hibernate.ejb.event.EJB3PostInsertEventListener,org.hibernate.envers.event.AuditEventListener");
-        configuration.setProperty("hibernate.ejb.event.post-update", "org.hibernate.ejb.event.EJB3PostUpdateEventListener,org.hibernate.envers.event.AuditEventListener");
-        configuration.setProperty("hibernate.ejb.event.post-delete", "org.hibernate.ejb.event.EJB3PostDeleteEventListener,org.hibernate.envers.event.AuditEventListener");
-
-        configuration.setProperty("hibernate.ejb.event.pre-collection-update", "org.hibernate.envers.event.AuditEventListener");
-        configuration.setProperty("hibernate.ejb.event.pre-collection-remove", "org.hibernate.envers.event.AuditEventListener");
-        configuration.setProperty("hibernate.ejb.event.post-collection-recreate", "org.hibernate.envers.event.AuditEventListener");
+        configuration.setProperty(AUTO_REGISTER, TRUE.toString());
 
         addAnnotatedClasses(configuration);
 
