@@ -54,7 +54,7 @@ public class Tree {
         return this;
     }
 
-    @Column(name = "children_order", insertable = false, updatable = true)
+    @Column(name = "children_order", insertable = false, updatable = false)
     public Integer getChildrenOrder() {
         return childrenOrder;
     }
