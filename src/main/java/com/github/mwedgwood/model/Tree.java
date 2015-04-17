@@ -44,16 +44,6 @@ public class Tree {
         return this;
     }
 
-    @Column(name = "children_order", insertable = false, updatable = false)
-    public Integer getChildrenOrder() {
-        return childrenOrder;
-    }
-
-    public Tree setChildrenOrder(Integer childrenOrder) {
-        this.childrenOrder = childrenOrder;
-        return this;
-    }
-
     @ManyToOne
     public Tree getParent() {
         return parent;
@@ -61,6 +51,16 @@ public class Tree {
 
     private Tree setParent(Tree parent) {
         this.parent = parent;
+        return this;
+    }
+
+    @Column(name = "children_order", insertable = false, updatable = true)
+    public Integer getChildrenOrder() {
+        return childrenOrder;
+    }
+
+    public Tree setChildrenOrder(Integer childrenOrder) {
+        this.childrenOrder = childrenOrder;
         return this;
     }
 

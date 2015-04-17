@@ -12,12 +12,42 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class EnversTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EnversTest.class);
+
+    @Test
+    public void testAuditTree() throws Exception {
+        Tree initialRoot = Transactable.execute(session -> {
+            Tree root = new Tree().setName("Root");
+            root.addChildTree(new Tree().setName("Child 1"));
+            root.addChildTree(new Tree().setName("Child 2"));
+            session.save(root);
+            return root;
+        });
+
+        System.out.println("\n" + initialRoot.prettyPrint() + "\n");
+
+        Tree versionOne = Transactable.execute(session -> {
+            AuditReader auditReader = AuditReaderFactory.get(session);
+            Tree versionOneRoot = auditReader.find(Tree.class, initialRoot.getId(), 1);
+            // initialize collection
+            versionOneRoot.getChildren().size();
+            return versionOneRoot;
+        });
+
+        assertEquals(2, versionOne.getChildren().size());
+
+        assertNotNull(versionOne.getChildren().get(0));
+        assertNotNull(versionOne.getChildren().get(1));
+
+        assertEquals(0, versionOne.getChildren().get(0).getChildrenOrder().intValue());
+        assertEquals(1, versionOne.getChildren().get(1).getChildrenOrder().intValue());
+
+        System.out.println("\n" + versionOne.prettyPrint() + "\n");
+    }
 
     @Test
     public void testAuditPerson() throws Exception {
@@ -88,26 +118,6 @@ public class EnversTest {
         Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
             revisions.stream().forEach(revision -> LOGGER.debug("Revision {} date: {}", revision, auditReader.getRevisionDate(revision)));
-            return null;
-        });
-    }
-
-    @Test
-    public void testAuditTree() throws Exception {
-        Tree initialRoot = Transactable.execute(session -> {
-            Tree root = new Tree().setName("Root");
-            root.addChildTree(new Tree().setName("Child 1"));
-            root.addChildTree(new Tree().setName("Child 2"));
-            session.save(root);
-            return root;
-        });
-
-        System.out.println("\n" + initialRoot.prettyPrint());
-
-        Transactable.execute(session -> {
-            AuditReader auditReader = AuditReaderFactory.get(session);
-            Tree versionOneRoot = auditReader.find(Tree.class, initialRoot.getId(), 1);
-            System.out.println("\n" + versionOneRoot.prettyPrint());
             return null;
         });
     }
