@@ -17,7 +17,7 @@ public class Tree {
 
     private Integer id;
     private String name;
-    private Integer childrenOrder = 0;
+    private Integer childOrder = 0;
 
     private Tree parent;
     private List<Tree> children = new ArrayList<>();
@@ -53,19 +53,18 @@ public class Tree {
         return this;
     }
 
-    @Column(name = "children_order", insertable = false, updatable = false)
-    public Integer getChildrenOrder() {
-        return childrenOrder;
+    @Column(name = "child_order")
+    public Integer getChildOrder() {
+        return childOrder;
     }
 
-    public Tree setChildrenOrder(Integer childrenOrder) {
-        this.childrenOrder = childrenOrder;
+    private Tree setChildOrder(Integer childOrder) {
+        this.childOrder = childOrder;
         return this;
     }
 
-    @AuditMappedBy(mappedBy = "parent", positionMappedBy = "childrenOrder")
+    @AuditMappedBy(mappedBy = "parent", positionMappedBy = "childOrder")
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    @OrderColumn(name = "children_order")
     public List<Tree> getChildren() {
         return children;
     }
@@ -77,12 +76,16 @@ public class Tree {
 
     public Tree addChildTree(Tree childTree) {
         children.add(childTree);
+        childTree.setChildOrder(children.size() - 1);
         return childTree.setParent(this);
     }
 
     public Tree addChildTree(Tree childTree, Integer order) {
         int index = (order != null && Range.closedOpen(0, children.size()).contains(order)) ? order : children.size();
         children.add(index, childTree);
+        for (int newIndex = 0; newIndex < children.size(); newIndex++) {
+            children.get(newIndex).setChildOrder(newIndex);
+        }
         return childTree.setParent(this);
     }
 

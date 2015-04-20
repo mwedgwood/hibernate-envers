@@ -30,11 +30,18 @@ public class EnversTest {
 
         System.out.println("\n" + initialRoot.prettyPrint() + "\n");
 
+        Transactable.execute(session -> {
+            Tree tree = (Tree) session.get(Tree.class, initialRoot.getId());
+            tree.addChildTree(new Tree().setName("Child 3"), 1);
+            session.update(tree);
+            return null;
+        });
+
         Tree versionOne = Transactable.execute(session -> {
             AuditReader auditReader = AuditReaderFactory.get(session);
             Tree versionOneRoot = auditReader.find(Tree.class, initialRoot.getId(), 1);
-            // initialize collection
-            versionOneRoot.getChildren().size();
+
+            System.out.println("\n" + versionOneRoot.prettyPrint() + "\n");
             return versionOneRoot;
         });
 
@@ -43,10 +50,26 @@ public class EnversTest {
         assertNotNull(versionOne.getChildren().get(0));
         assertNotNull(versionOne.getChildren().get(1));
 
-        assertEquals(0, versionOne.getChildren().get(0).getChildrenOrder().intValue());
-        assertEquals(1, versionOne.getChildren().get(1).getChildrenOrder().intValue());
+        assertEquals(0, versionOne.getChildren().get(0).getChildOrder().intValue());
+        assertEquals(1, versionOne.getChildren().get(1).getChildOrder().intValue());
 
-        System.out.println("\n" + versionOne.prettyPrint() + "\n");
+        Tree versionTwo = Transactable.execute(session -> {
+            AuditReader auditReader = AuditReaderFactory.get(session);
+            Tree versionTwoRoot = auditReader.find(Tree.class, initialRoot.getId(), 2);
+
+            System.out.println("\n" + versionTwoRoot.prettyPrint() + "\n");
+            return versionTwoRoot;
+        });
+
+        assertEquals(3, versionTwo.getChildren().size());
+
+        assertNotNull(versionTwo.getChildren().get(0));
+        assertNotNull(versionTwo.getChildren().get(1));
+        assertNotNull(versionTwo.getChildren().get(2));
+
+        assertEquals(0, versionTwo.getChildren().get(0).getChildOrder().intValue());
+        assertEquals(1, versionTwo.getChildren().get(1).getChildOrder().intValue());
+        assertEquals(2, versionTwo.getChildren().get(2).getChildOrder().intValue());
     }
 
     @Test
