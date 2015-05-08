@@ -1,5 +1,7 @@
 package com.github.mwedgwood.model;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.Entity;
@@ -59,6 +61,7 @@ public class Address {
     }
 
     @OneToMany(mappedBy = "address")
+    @Cascade(value = CascadeType.ALL)
     public Set<Person> getPersons() {
         return persons;
     }

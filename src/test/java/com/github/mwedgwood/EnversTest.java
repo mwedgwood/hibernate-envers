@@ -122,6 +122,47 @@ public class EnversTest {
         });
     }
 
+    @Test
+    public void testRestorePerson() throws Exception {
+        Person initialPerson = Transactable.execute(session -> {
+            Address address = new Address().setStreetName("1111 Nowhere Lane");
+            session.save(address);
+
+            Person newPerson = new Person()
+                    .setName("Matt")
+                    .setSurname("Wedgwood")
+                    .setAddress(address);
+
+            session.save(newPerson);
+            return newPerson;
+        });
+
+        assertEquals("Matt", initialPerson.getName());
+        assertEquals("1111 Nowhere Lane", initialPerson.getAddress().getStreetName());
+
+        Person updatedPerson = Transactable.execute(session -> {
+            session.update(initialPerson.setName("John"));
+            session.update(initialPerson.getAddress().setStreetName("1700 Montgomery Street"));
+            return initialPerson;
+        });
+
+        assertEquals("John", updatedPerson.getName());
+        assertEquals("1700 Montgomery Street", updatedPerson.getAddress().getStreetName());
+
+        Transactable.execute(session -> {
+            AuditReader auditReader = AuditReaderFactory.get(session);
+            Address v1Address = auditReader.find(Address.class, initialPerson.getId(), 1);
+
+            session.merge(v1Address);
+            return null;
+        });
+
+        Person currentPerson = findById(initialPerson.getId());
+
+        assertEquals("Matt", currentPerson.getName());
+        assertEquals("1111 Nowhere Lane", currentPerson.getAddress().getStreetName());
+    }
+
     private Person findById(Integer id) {
         return Transactable.execute(session -> (Person) session.get(Person.class, id));
     }
